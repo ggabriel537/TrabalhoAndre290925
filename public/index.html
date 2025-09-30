@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Aluno</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { margin-bottom: 20px; }
+    input { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>Cadastro de Aluno</h1>
+  <form id="form-aluno">
+    <input type="text" id="rgm" placeholder="RGM (xxx.xxx)" required pattern="\d{3}\.\d{3}">
+    <input type="text" id="nome" placeholder="Nome" required>
+    <input type="number" id="idade" placeholder="Idade" required>
+    <button type="submit">Cadastrar</button>
+  </form>
+
+  <h2>Lista de Alunos</h2>
+  <table id="tabela-alunos">
+    <thead>
+      <tr><th>RGM</th><th>Nome</th><th>Idade</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById("form-aluno");
+    const tabela = document.querySelector("#tabela-alunos tbody");
+
+    async function carregarAlunos() {
+      const res = await fetch("/api/alunos");
+      const alunos = await res.json();
+      tabela.innerHTML = "";
+      alunos.forEach(aluno => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${aluno.rgm}</td><td>${aluno.nome}</td><td>${aluno.idade}</td>`;
+        tabela.appendChild(tr);
+      });
+    }
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const rgm = document.getElementById("rgm").value;
+      const nome = document.getElementById("nome").value;
+      const idade = document.getElementById("idade").value;
+
+      const res = await fetch("/api/alunos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rgm, nome, idade })
+      });
+
+      if (res.ok) {
+        form.reset();
+        carregarAlunos();
+      } else {
+        const err = await res.json();
+        alert(err.error);
+      }
+    });
+
+    carregarAlunos();
+  </script>
+</body>
+</html>
